@@ -1,0 +1,12 @@
+{
+    "width": "1000",
+    "height": "950",
+    "max_iter": "255",
+    "x_min": "-1.797588919691",
+    "x_max": "-1.720576177312",
+    "y_min": "-0.036452077562",
+    "y_max": "0.040560664818",
+    "palette": "BUD3_csv.MAP",
+    "fractal_type": "Mandelbrot",
+    "halley_power": 5
+}

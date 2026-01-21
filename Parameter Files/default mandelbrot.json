@@ -1,0 +1,12 @@
+{
+    "width": "1000",
+    "height": "950",
+    "max_iter": "255",
+    "x_min": "-2.0",
+    "x_max": "1.0",
+    "y_min": "-1.5",
+    "y_max": "1.5",
+    "palette": "GOODEGA2.MAP",
+    "fractal_type": "Mandelbrot",
+    "halley_power": 5
+}
