@@ -16,7 +16,8 @@ from fractals_ui import (
     load_default_parameters,
     show_context_menu,
     get_fractal_type,
-    get_halley_power
+    get_halley_power,
+    toggle_progress_updates
 )
 from fractals_io import (
     save_fractal_image,
@@ -154,6 +155,19 @@ if __name__ == '__main__':
     
     progress_bar = ttk.Progressbar(progress_frame, mode='determinate', length=200)
     progress_bar.pack(fill=tk.X, padx=5)  # Add some padding to ensure the bar doesn't touch the edges
+    
+    # Create a checkbox for progress bar updates
+    progress_toggle_frame = tk.Frame(left_panel)
+    progress_toggle_frame.pack(fill=tk.X, pady=5)
+    
+    progress_toggle_var = tk.BooleanVar(value=True)
+    progress_toggle_checkbox = tk.Checkbutton(
+        progress_toggle_frame,
+        text="Show Progress Updates",
+        variable=progress_toggle_var,
+        command=lambda: toggle_progress_updates(progress_toggle_var.get())
+    )
+    progress_toggle_checkbox.pack(fill=tk.X, padx=5)
     
     # Create a new frame for the edit button
     edit_frame = tk.Frame(left_panel)

@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import Menu
 import threading
 import fractals_core
-from fractals_core import set_progress_controls
+from fractals_core import set_progress_controls, set_progress_updates
 from fractals_render import (
     draw_mandelbrot_scanlines_tkinter_palette,
     draw_halley_fractal,
@@ -34,6 +34,11 @@ def set_ui_globals(progress_bar_ref, progress_label_ref, elapsed_time_label_ref)
     set_elapsed_time_label(elapsed_time_label_ref)
 
 
+def toggle_progress_updates(enabled):
+    """Toggle progress bar updates on/off."""
+    set_progress_updates(enabled)
+
+
 def get_fractal_type():
     """Get current fractal type."""
     return current_fractal_type
@@ -55,10 +60,12 @@ def start_drawing_thread(canvas, width_entry_var, height_entry_var, max_iter_ent
         if elapsed_time_label:
             elapsed_time_label.config(text="--")
         
-        # Reset progress bar at start
+        # Reset progress bar at start (always reset to 0, but only show text if progress updates are enabled)
         if progress_bar and progress_label:
             progress_bar['value'] = 0
-            progress_label.config(text="Progress: Starting...")
+            if fractals_core.show_progress_updates:
+                progress_label.config(text="Progress: Starting...")
+        if progress_bar:
             canvas.update_idletasks()
         
         width = int(width_entry_var.get())
@@ -87,8 +94,8 @@ def start_drawing_thread(canvas, width_entry_var, height_entry_var, max_iter_ent
     except ValueError:
         print("Error: Invalid input in parameter fields. Please enter integers and floats correctly.")
         fractals_core.drawing_running = False
-        # Reset progress bar on error
-        if progress_bar and progress_label:
+        # Reset progress bar on error (only if progress updates are enabled)
+        if fractals_core.show_progress_updates and progress_bar and progress_label:
             progress_bar['value'] = 0
             progress_label.config(text="Progress: Error")
             canvas.update_idletasks()
@@ -97,8 +104,8 @@ def start_drawing_thread(canvas, width_entry_var, height_entry_var, max_iter_ent
 def end_drawing():
     """Stop the current drawing operation."""
     fractals_core.drawing_running = False
-    # Reset progress bar
-    if progress_bar and progress_label:
+    # Reset progress bar (only if progress updates are enabled)
+    if fractals_core.show_progress_updates and progress_bar and progress_label:
         progress_bar['value'] = 0
         progress_label.config(text="Progress: Cancelled")
 

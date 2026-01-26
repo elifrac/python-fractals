@@ -2,12 +2,15 @@
 Core fractal calculation functions using NumPy vectorization.
 """
 import numpy as np
+import threading
 
 
 # Global state for drawing control
 drawing_running = False
 progress_bar = None
 progress_label = None
+show_progress_updates = True  # Toggle for progress bar updates
+progress_lock = threading.Lock()  # Lock for thread-safe access
 
 
 def set_progress_controls(progress_bar_ref, progress_label_ref):
@@ -17,17 +20,27 @@ def set_progress_controls(progress_bar_ref, progress_label_ref):
     progress_label = progress_label_ref
 
 
+def set_progress_updates(enabled):
+    """Enable or disable progress bar updates (thread-safe)."""
+    global show_progress_updates
+    with progress_lock:
+        show_progress_updates = enabled
+
+
 def mandelbrot_set_iterations_pixel_yield_numpy(width, height, max_iter, x_min, x_max, y_min, y_max):
     """
     Optimized Mandelbrot set calculation using NumPy vectorization.
     Returns a 2D NumPy array of iteration counts.
     """
-    global drawing_running, progress_bar, progress_label
+    global drawing_running, progress_bar, progress_label, show_progress_updates
     
-    # Update progress
+    # Update progress (always reset to 0, but only show text if toggle is on)
+    with progress_lock:
+        check_progress = show_progress_updates
     if progress_bar and progress_label:
         progress_bar['value'] = 0
-        progress_label.config(text="Progress: Initializing...")
+        if check_progress:
+            progress_label.config(text="Progress: Initializing...")
     
     # Create coordinate arrays with correct orientation
     real = np.linspace(x_min, x_max, width, dtype=np.float64)
@@ -53,8 +66,10 @@ def mandelbrot_set_iterations_pixel_yield_numpy(width, height, max_iter, x_min, 
         mask &= ~escaped
         
         # Update progress every few iterations (less frequently for better performance)
-        if i % 10 == 0 and progress_bar and progress_label:
-            progress = int(25 * (i / max_iter))  # Use first 25% for calculation
+        with progress_lock:
+            check_progress = show_progress_updates
+        if check_progress and i % 10 == 0 and progress_bar and progress_label:
+            progress = int(20 * (i / max_iter))  # Use first 20% for calculation
             progress_bar['value'] = progress
             progress_label.config(text=f"Progress: Calculating ({i}/{max_iter} iterations)")
             if i % 50 == 0:  # Only update UI every 50 iterations for better performance
@@ -71,13 +86,16 @@ def halley_fractal_iterations(width, height, max_iter, x_min, x_max, y_min, y_ma
     Compute Halley's fractal iterations using NumPy vectorization.
     Returns iteration counts and root indices.
     """
-    global drawing_running, progress_bar, progress_label
+    global drawing_running, progress_bar, progress_label, show_progress_updates
     
-    # Update progress
+    # Update progress (always reset to 0, but only show text if toggle is on)
+    with progress_lock:
+        check_progress = show_progress_updates
     if progress_bar and progress_label:
         progress_bar['value'] = 0
-        progress_label.config(text="Progress: Initializing...")
-        progress_bar.update_idletasks()
+        if check_progress:
+            progress_label.config(text="Progress: Initializing...")
+            progress_bar.update_idletasks()
     
     # Create coordinate arrays
     x = np.linspace(x_min, x_max, width)
@@ -156,8 +174,10 @@ def halley_fractal_iterations(width, height, max_iter, x_min, x_max, y_min, y_ma
         z[mask] = z_new[mask]
         
         # Update progress every few iterations (less frequently for better performance)
-        if i % 10 == 0 and progress_bar and progress_label:
-            progress = int(25 * (i / max_iter))  # Use first 25% for calculation
+        with progress_lock:
+            check_progress = show_progress_updates
+        if check_progress and i % 10 == 0 and progress_bar and progress_label:
+            progress = int(20 * (i / max_iter))  # Use first 20% for calculation
             progress_bar['value'] = progress
             progress_label.config(text=f"Progress: Calculating ({i}/{max_iter} iterations)")
             if i % 50 == 0:  # Only update UI every 50 iterations for better performance

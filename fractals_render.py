@@ -48,8 +48,10 @@ def draw_mandelbrot_scanlines_tkinter_palette(canvas, width, height, max_iter, x
         return
     
     # Update progress for coloring
-    if fractals_core.progress_bar and fractals_core.progress_label:
-        fractals_core.progress_bar['value'] = 25
+    with fractals_core.progress_lock:
+        check_progress = fractals_core.show_progress_updates
+    if check_progress and fractals_core.progress_bar and fractals_core.progress_label:
+        fractals_core.progress_bar['value'] = 30
         fractals_core.progress_label.config(text="Progress: Coloring...")
         fractals_core.progress_bar.update_idletasks()
     
@@ -78,7 +80,9 @@ def draw_mandelbrot_scanlines_tkinter_palette(canvas, width, height, max_iter, x
         img_array[escaped_mask] = palette_array[color_indices]
     
     # Update progress for final rendering
-    if fractals_core.progress_bar and fractals_core.progress_label:
+    with fractals_core.progress_lock:
+        check_progress = fractals_core.show_progress_updates
+    if check_progress and fractals_core.progress_bar and fractals_core.progress_label:
         fractals_core.progress_bar['value'] = 75
         fractals_core.progress_label.config(text="Progress: Rendering...")
         fractals_core.progress_bar.update_idletasks()
@@ -98,7 +102,9 @@ def draw_mandelbrot_scanlines_tkinter_palette(canvas, width, height, max_iter, x
         canvas.update()
         
         # Complete progress
-        if fractals_core.progress_bar and fractals_core.progress_label:
+        with fractals_core.progress_lock:
+            check_progress = fractals_core.show_progress_updates
+        if check_progress and fractals_core.progress_bar and fractals_core.progress_label:
             fractals_core.progress_bar['value'] = 100
             fractals_core.progress_label.config(text="Progress: Complete")
             fractals_core.progress_bar.update_idletasks()
@@ -116,7 +122,7 @@ def draw_halley_fractal(canvas, width, height, max_iter, x_min, x_max, y_min, y_
     start_time = time.time()  # Start timing
     
     # Reset progress bar
-    if fractals_core.progress_bar and fractals_core.progress_label:
+    if fractals_core.show_progress_updates and fractals_core.progress_bar and fractals_core.progress_label:
         fractals_core.progress_bar['value'] = 0
         fractals_core.progress_label.config(text="Progress: Calculating...")
         canvas.update_idletasks()
@@ -124,11 +130,7 @@ def draw_halley_fractal(canvas, width, height, max_iter, x_min, x_max, y_min, y_
     # Compute iterations and root indices
     iterations, root_indices = halley_fractal_iterations(width, height, max_iter, x_min, x_max, y_min, y_max, n)
     
-    # Update progress
-    if fractals_core.progress_bar and fractals_core.progress_label:
-        fractals_core.progress_bar['value'] = 50
-        fractals_core.progress_label.config(text="Progress: Coloring...")
-        canvas.update_idletasks()
+    # Update progress\n    with fractals_core.progress_lock:\n        check_progress = fractals_core.show_progress_updates\n    if check_progress and fractals_core.progress_bar and fractals_core.progress_label:\n        fractals_core.progress_bar['value'] = 40\n        fractals_core.progress_label.config(text=\"Progress: Coloring...\")\n        canvas.update_idletasks()
     
     # Create an image from the iteration counts
     img = Image.new('RGB', (width, height), color='black')
@@ -151,7 +153,9 @@ def draw_halley_fractal(canvas, width, height, max_iter, x_min, x_max, y_min, y_
                 pixels[x, y] = color_palette[color_idx]
     
     # Update progress
-    if fractals_core.progress_bar and fractals_core.progress_label:
+    with fractals_core.progress_lock:
+        check_progress = fractals_core.show_progress_updates
+    if check_progress and fractals_core.progress_bar and fractals_core.progress_label:
         fractals_core.progress_bar['value'] = 75
         fractals_core.progress_label.config(text="Progress: Rendering...")
         canvas.update_idletasks()
@@ -170,7 +174,9 @@ def draw_halley_fractal(canvas, width, height, max_iter, x_min, x_max, y_min, y_
         canvas.update()
         
         # Complete progress
-        if fractals_core.progress_bar and fractals_core.progress_label:
+        with fractals_core.progress_lock:
+            check_progress = fractals_core.show_progress_updates
+        if check_progress and fractals_core.progress_bar and fractals_core.progress_label:
             fractals_core.progress_bar['value'] = 100
             fractals_core.progress_label.config(text="Progress: Complete")
             canvas.update_idletasks()
