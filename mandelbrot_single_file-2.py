@@ -14,6 +14,7 @@ import threading
 import json
 import os
 import random
+import subprocess
 from tkinter import ttk
 
 drawing_running = False
@@ -26,6 +27,14 @@ current_pil_image = None        # To store the currently generated PIL Image
 current_fractal_type = "Mandelbrot"  # Default fractal type
 current_halley_power = 3  # Default power for Halley's fractal
 context_menu = None  # Global variable to track the current context menu
+show_progress_updates = True  # Toggle for progress bar updates
+loaded_parameter_file = None  # Track the currently loaded parameter file
+
+
+def toggle_progress_updates(enabled):
+    """Toggle progress bar updates on/off."""
+    global show_progress_updates
+    show_progress_updates = enabled
 
 
 def pil_image_to_tk(image):
@@ -48,7 +57,9 @@ def mandelbrot_set_iterations_pixel_yield_numpy(width, height, max_iter, x_min, 
     """
     # Update progress
     progress_bar['value'] = 0
-    progress_label.config(text="Progress: Initializing...")
+    if show_progress_updates:
+        progress_label.config(text="Progress: Initializing...")
+    else: progress_label.config(text="")
     
     # Create coordinate arrays with correct orientation
     real = np.linspace(x_min, x_max, width, dtype=np.float64)
@@ -76,8 +87,10 @@ def mandelbrot_set_iterations_pixel_yield_numpy(width, height, max_iter, x_min, 
         # Update progress every few iterations
         if i % 5 == 0:
             progress = int(25 * (i / max_iter))  # Use first 25% for calculation
-            progress_bar['value'] = progress
-            progress_label.config(text=f"Progress: Calculating ({i}/{max_iter} iterations)")
+            if show_progress_updates:
+                progress_bar['value'] = progress
+                progress_label.config(text=f"Progress: Calculating ({i}/{max_iter} iterations)")
+            else: progress_label.config(text="")    
             progress_bar.update_idletasks()
         
         if not np.any(mask):
@@ -92,7 +105,9 @@ def halley_fractal_iterations(width, height, max_iter, x_min, x_max, y_min, y_ma
     """
     # Update progress
     progress_bar['value'] = 0
-    progress_label.config(text="Progress: Initializing...")
+    if show_progress_updates:
+        progress_label.config(text="Progress: Initializing...")
+    else: progress_label.config(text="")
     progress_bar.update_idletasks()
     
     # Create coordinate arrays
@@ -174,8 +189,10 @@ def halley_fractal_iterations(width, height, max_iter, x_min, x_max, y_min, y_ma
         # Update progress every few iterations
         if i % 5 == 0:
             progress = int(25 * (i / max_iter))  # Use first 25% for calculation
-            progress_bar['value'] = progress
-            progress_label.config(text=f"Progress: Calculating ({i}/{max_iter} iterations)")
+            if show_progress_updates:
+                progress_bar['value'] = progress
+                progress_label.config(text=f"Progress: Calculating ({i}/{max_iter} iterations)")
+            else: progress_label.config(text="")
             progress_bar.update_idletasks()
     
     return iterations, root_indices
@@ -192,8 +209,10 @@ def draw_mandelbrot_scanlines_tkinter_palette(canvas, width, height, max_iter, x
         return
     
     # Update progress for coloring
-    progress_bar['value'] = 25
-    progress_label.config(text="Progress: Coloring...")
+    if show_progress_updates:
+        progress_bar['value'] = 25
+        progress_label.config(text="Progress: Coloring...")
+    else: progress_label.config(text="")
     progress_bar.update_idletasks()
     
     if not drawing_running:  # Check if we should stop
@@ -221,8 +240,10 @@ def draw_mandelbrot_scanlines_tkinter_palette(canvas, width, height, max_iter, x
         img_array[escaped_mask] = palette_array[color_indices]
     
     # Update progress for final rendering
-    progress_bar['value'] = 75
-    progress_label.config(text="Progress: Rendering...")
+    if show_progress_updates:
+        progress_bar['value'] = 75
+        progress_label.config(text="Progress: Rendering...")
+    else: progress_label.config(text="")
     progress_bar.update_idletasks()
     
     # Convert NumPy array to PIL Image
@@ -240,10 +261,15 @@ def draw_mandelbrot_scanlines_tkinter_palette(canvas, width, height, max_iter, x
         canvas.update()
         
         # Complete progress
-        progress_bar['value'] = 100
-        progress_label.config(text="Progress: Complete")
-        progress_bar.update_idletasks()
-        
+        if show_progress_updates:
+            progress_bar['value'] = 100
+            progress_label.config(text="Progress: Complete")
+            progress_bar.update_idletasks()
+        else: 
+            progress_bar['value'] = 0
+            progress_label.config(text="")
+            progress_bar.update_idletasks()
+        canvas.update_idletasks()
         # Calculate and display elapsed time
         elapsed_time = time.time() - start_time
         elapsed_time_label.config(text=f"{elapsed_time:.2f} sec")
@@ -256,15 +282,19 @@ def draw_halley_fractal(canvas, width, height, max_iter, x_min, x_max, y_min, y_
     
     # Reset progress bar
     progress_bar['value'] = 0
-    progress_label.config(text="Progress: Calculating...")
+    if show_progress_updates:
+        progress_label.config(text="Progress: Calculating...")
+    else: progress_label.config(text="")
     canvas.update_idletasks()
     
     # Compute iterations and root indices
     iterations, root_indices = halley_fractal_iterations(width, height, max_iter, x_min, x_max, y_min, y_max, n)
     
     # Update progress
-    progress_bar['value'] = 50
-    progress_label.config(text="Progress: Coloring...")
+    if show_progress_updates:
+        progress_bar['value'] = 50
+        progress_label.config(text="Progress: Coloring...")
+    else: progress_label.config(text="")
     canvas.update_idletasks()
     
     # Create an image from the iteration counts
@@ -288,8 +318,10 @@ def draw_halley_fractal(canvas, width, height, max_iter, x_min, x_max, y_min, y_
                 pixels[x, y] = color_palette[color_idx]
     
     # Update progress
-    progress_bar['value'] = 75
-    progress_label.config(text="Progress: Rendering...")
+    if show_progress_updates:
+        progress_bar['value'] = 75
+        progress_label.config(text="Progress: Rendering...")
+    else: progress_label.config(text="")
     canvas.update_idletasks()
     
     # Convert the image to PhotoImage and display on canvas
@@ -306,10 +338,15 @@ def draw_halley_fractal(canvas, width, height, max_iter, x_min, x_max, y_min, y_
         canvas.update()
         
         # Complete progress
-        progress_bar['value'] = 100
-        progress_label.config(text="Progress: Complete")
+        if show_progress_updates:
+            progress_bar['value'] = 100
+            progress_label.config(text="Progress: Complete")
+            progress_bar.update_idletasks()
+        else: 
+            progress_bar['value'] = 0
+            progress_label.config(text="")
         canvas.update_idletasks()
-        
+
         # Calculate and display elapsed time
         elapsed_time = time.time() - start_time
         elapsed_time_label.config(text=f"{elapsed_time:.2f} sec")
@@ -325,7 +362,9 @@ def start_drawing_thread(canvas, width_entry_var, height_entry_var, max_iter_ent
         
         # Reset progress bar at start
         progress_bar['value'] = 0
-        progress_label.config(text="Progress: Starting...")
+        if show_progress_updates:
+            progress_label.config(text="Progress: Starting...")
+        else: progress_label.config(text="")
         canvas.update_idletasks()
         
         width = int(width_entry_var.get())
@@ -356,7 +395,8 @@ def start_drawing_thread(canvas, width_entry_var, height_entry_var, max_iter_ent
         drawing_running = False
         # Reset progress bar on error
         progress_bar['value'] = 0
-        progress_label.config(text="Progress: Error")
+        if show_progress_updates:
+            progress_label.config(text="Progress: Error")
         canvas.update_idletasks()
 
 def end_drawing():
@@ -364,7 +404,9 @@ def end_drawing():
     drawing_running = False
     # Reset progress bar
     progress_bar['value'] = 0
-    progress_label.config(text="Progress: Cancelled")
+    if show_progress_updates:
+        progress_label.config(text="Progress: Cancelled")
+    else: progress_label.config(text="")
 
 def start_zoom_rect(event, canvas):
     global zoom_start_x, zoom_start_y, zoom_rectangle_id
@@ -602,7 +644,7 @@ def save_parameters_file(width_entry_var, height_entry_var, max_iter_entry_var,
 def load_parameters_file(width_entry_var, height_entry_var, max_iter_entry_var, 
                            x_min_entry_var, x_max_entry_var, y_min_entry_var, 
                            y_max_entry_var, canvas, color_palette, palette_label=None):
-    global current_fractal_type, current_halley_power, custom_palette
+    global current_fractal_type, current_halley_power, custom_palette, loaded_parameter_file
     
     # Create Parameter Files directory if it doesn't exist
     params_dir = "Parameter Files"
@@ -615,6 +657,9 @@ def load_parameters_file(width_entry_var, height_entry_var, max_iter_entry_var,
     )
     if file_path:
         try:
+            # Track the loaded parameter file
+            loaded_parameter_file = file_path
+            
             with open(file_path, "r") as fp:
                 params = json.load(fp)
             width_entry_var.set(params.get("width", width_entry_var.get()))
@@ -804,7 +849,7 @@ def change_fractal_type(fractal_type, canvas, width_entry_var, height_entry_var,
         y_max_entry_var.set("1.5")
         
         # Increase max iterations for better detail
-        max_iter_entry_var.set("100")
+        max_iter_entry_var.set("255")
     
     # Redraw the fractal
     start_drawing_thread(
@@ -903,6 +948,45 @@ if __name__ == '__main__':
     
     progress_bar = ttk.Progressbar(progress_frame, mode='determinate', length=200)
     progress_bar.pack(fill=tk.X, padx=5)  # Add some padding to ensure the bar doesn't touch the edges
+    
+    # Create a checkbox for progress bar updates
+    progress_toggle_frame = tk.Frame(left_panel)
+    progress_toggle_frame.pack(fill=tk.X, pady=5)
+    
+    progress_toggle_var = tk.BooleanVar(value=True)
+    progress_toggle_checkbox = tk.Checkbutton(
+        progress_toggle_frame,
+        text="Show Progress Updates",
+        variable=progress_toggle_var,
+        command=lambda: toggle_progress_updates(progress_toggle_var.get())
+    )
+    progress_toggle_checkbox.pack(fill=tk.X, padx=5)
+    
+    # Create a new frame for the edit button
+    edit_frame = tk.Frame(left_panel)
+    edit_frame.pack(fill=tk.X, pady=5)
+    
+    # Add button to edit parameter file
+    def edit_parameter_file():
+        """Edit the currently loaded parameter file or open Parameters directory."""
+        global loaded_parameter_file
+        if loaded_parameter_file and os.path.exists(loaded_parameter_file):
+            try:
+                subprocess.Popen(['xed', loaded_parameter_file])
+            except Exception as e:
+                print(f"Error opening file with Xed: {e}")
+        else:
+            # Open the Parameter Files directory with file manager
+            params_dir = os.path.abspath("Parameter Files")
+            if not os.path.exists(params_dir):
+                os.makedirs(params_dir)
+            try:
+                subprocess.Popen(['xdg-open', params_dir])
+            except Exception as e:
+                print(f"Error opening Parameters directory: {e}")
+    
+    edit_params_button = tk.Button(edit_frame, text="Edit Params", command=edit_parameter_file)
+    edit_params_button.pack(fill=tk.X, padx=5, pady=2)
     
     # Function to update parameter display
     def update_parameter_display():
