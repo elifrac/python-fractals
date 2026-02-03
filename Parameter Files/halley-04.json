@@ -1,0 +1,12 @@
+{
+    "width": "1000",
+    "height": "950",
+    "max_iter": "100",
+    "x_min": "-0.084000000000",
+    "x_max": "0.084000000000",
+    "y_min": "0.922831578947",
+    "y_max": "1.082431578947",
+    "Palette": "GOODEGA2.MAP",
+    "fractal_type": "Halley",
+    "halley_power": 10
+}
