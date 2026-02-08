@@ -19,8 +19,8 @@ def pil_image_to_tk(image):
     """
     if HAVE_IMAGETK and ImageTk is not None:
         return ImageTk.PhotoImage(image=image)
-    # Fallback: encode image as PNG in memory and feed to tk.PhotoImage
-    with io.BytesIO() as buffer:
-        image.save(buffer, format="PNG")
-        data = buffer.getvalue()
-    return tk.PhotoImage(data=data)
+    else:
+        with io.BytesIO() as buffer:
+            image.save(buffer, format="PNG")
+            data = buffer.getvalue()
+        return tk.PhotoImage(data=data)
